@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Programming Quiz</title>
+  <style>
+    body {
+      background-image: linear-gradient(to bottom right, #ff9a9e, #fad0c4);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    #quiz-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 35px;
+      background-image: linear-gradient(to bottom, #fff, #8e8484);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      position: relative;
+      text-align: center;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      background-color: silver;
+      color: #333;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #b0b0b0;
+    }
+
+    #next-btn {
+    background-color: #d80505;
+    color: rgb(0, 0, 0);
+    display: block;
+    margin-top: 10px;
+    bottom: 1px;
+    position: absolute;
+    right: 20px;  
+    }
+
+    #next-btn:hover {
+      background-color: #ef0000;
+    }
+
+    #feedback {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    #feedback.correct {
+      color: rgb(0, 255, 0);
+    }
+
+    #feedback.incorrect {
+      color: rgb(255, 0, 0);
+    }
+
+    #timer {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      color: rgb(0, 0, 0);
+      font-weight: bold;
+    }
+    #start-btn {
+    padding: 15px 30px;
+    font-size: 18px;
+    border: none;
+    border-radius: 8px;
+    background-image: linear-gradient(to bottom, rgb(10, 255, 71), #128c25); /* Green background */
+    color: white;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    }
+
+    #start-btn:hover {
+    background-color: #45a049; /* Darker green on hover */
+    }
+  </style>
+</head>
+<body>
+
+    <button id="start-btn">Start Quiz</button>
+    <div id="quiz-container" style="display: none;">
+    <h1>Programming Quiz</h1>
+    <div id="question"></div>
+    <div id="options"></div>
+    <button id="next-btn" style="display: none;">Next</button>
+    <div id="feedback"></div>
+    <div id="result" style="display: none;"></div>
+    <button id="restart-btn" style="display: none;">Restart</button>
+    <div id="timer">Time left: 30s</div>
+    </div>
+  
+  <script>
+    const quizData = [
+      {
+        question: "Which programming language is often used for building web pages?",
+        options: ["Java", "Python", "HTML", "Swift"],
+        answer: "HTML"
+      },
+      {
+        question: "What does CSS stand for in web development?",
+        options: ["Cascading Style Sheets", "Computer Style Sheets", "Creative Style Sheets", "Colorful Style Sheets"],
+        answer: "Cascading Style Sheets"
+      },
+      {
+        question: "Which symbol is used to indicate a single-line comment in JavaScript?",
+        options: ["//", "/*", "#", "--"],
+        answer: "//"
+      },
+      {
+        question: "What does HTML stand for?",
+        options: ["Hyper Text Markup Language", "Hyperlinks and Text Markup Language", "Home Tool Markup Language", "Hyper Tool Multi Language"],
+        answer: "Hyper Text Markup Language"
+      },
+      {
+        question: "What language is known as the 'language of the web'?",
+        options: ["JavaScript", "Java", "C++", "Python"],
+        answer: "JavaScript"
+      }
+    ];
+
+    const quizContainer = document.getElementById('quiz-container');
+    const questionElement = document.getElementById('question');
+    const optionsElement = document.getElementById('options');
+    const nextButton = document.getElementById('next-btn');
+    const feedbackElement = document.getElementById('feedback');
+    const resultElement = document.getElementById('result');
+    const restartButton = document.getElementById('restart-btn');
+    const timerElement = document.getElementById('timer');
+    const timeLimit = 30;
+    let timer;
+    let timeLeft = timeLimit;
+    let currentQuestion = 0;
+    let score = 0;
+
+    function startTimer() {
+      timer = setInterval(() => {
+        timeLeft--;
+        timerElement.textContent = `Time left: ${timeLeft}s`;
+
+        if (timeLeft === 0) {
+          clearInterval(timer);
+          handleTimeout();
+        }
+      }, 1000);
+    }
+
+    function resetTimer() {
+      clearInterval(timer);
+      timeLeft = timeLimit;
+      timerElement.textContent = `Time left: ${timeLeft}s`;
+    }
+
+    function handleTimeout() {
+      feedbackElement.textContent = 'Time is up!';
+      feedbackElement.classList.remove('correct', 'incorrect');
+      nextButton.style.display = 'block';
+      optionsElement.querySelectorAll('button').forEach(button => {
+        button.disabled = true;
+      });
+    }
+
+    function showQuestion() {
+      const currentQuizData = quizData[currentQuestion];
+      questionElement.textContent = currentQuizData.question;
+
+      optionsElement.innerHTML = '';
+      currentQuizData.options.forEach((option, index) => {
+        const optionButton = document.createElement('button');
+        optionButton.textContent = option;
+        optionButton.addEventListener('click', () => checkAnswer(option));
+        optionsElement.appendChild(optionButton);
+      });
+    }
+
+    function checkAnswer(selectedOption) {
+      const currentQuizData = quizData[currentQuestion];
+      const correctAnswer = currentQuizData.answer;
+
+      if (selectedOption === correctAnswer) {
+        feedbackElement.textContent = 'Correct!';
+        feedbackElement.classList.remove('incorrect');
+        feedbackElement.classList.add('correct');
+        score++;
+      } else {
+        feedbackElement.textContent = 'Incorrect!';
+        feedbackElement.classList.remove('correct');
+        feedbackElement.classList.add('incorrect');
+      }
+
+      nextButton.style.display = 'block';
+      optionsElement.querySelectorAll('button').forEach(button => {
+        button.disabled = true;
+      });
+    }
+
+    function showNextQuestion() {
+        resetTimer();
+        currentQuestion++;
+
+        if (currentQuestion < quizData.length) {
+            showQuestion();
+            feedbackElement.textContent = '';
+            optionsElement.querySelectorAll('button').forEach(button => {
+            button.disabled = false;
+            });
+            startTimer(); // Start the timer for the next question
+        } else {
+            nextButton.style.display = 'none'; // Hide the next button after the last question
+            showResult();
+        }
+        }
+
+    function showResult() {
+      questionElement.textContent = '';
+      optionsElement.textContent = '';
+      feedbackElement.textContent = '';
+      resultElement.style.display = 'block';
+      resultElement.textContent = `You scored ${score} out of ${quizData.length}!`;
+      restartButton.style.display = 'block';
+    }
+
+    function restartQuiz() {
+      currentQuestion = 0;
+      score = 0;
+      resultElement.style.display = 'none';
+      restartButton.style.display = 'none';
+      showQuestion();
+      startTimer(); // Start the timer for the first question
+    }
+
+    nextButton.addEventListener('click', showNextQuestion);
+    restartButton.addEventListener('click', restartQuiz);
+
+    showQuestion();
+    startTimer(); // Start the initial timer for the first question
+    function showResult() {
+    questionElement.textContent = '';
+    optionsElement.textContent = '';
+    feedbackElement.textContent = '';
+    resultElement.style.display = 'block';
+    resultElement.textContent = `You scored ${score} out of ${quizData.length}!`;
+    restartButton.style.display = 'block';
+
+    const correctAnswersElement = document.createElement('div');
+    correctAnswersElement.textContent = 'Correct Answers:';
+    quizData.forEach((quiz, index) => {
+        const answerElement = document.createElement('p');
+        answerElement.textContent = `${index + 1}. ${quiz.answer}`;
+        correctAnswersElement.appendChild(answerElement);
+    });
+    resultElement.appendChild(correctAnswersElement);
+    }
+    const startButton = document.getElementById('start-btn');
+    startButton.addEventListener('click', startQuiz);
+
+    function startQuiz() {
+    startButton.style.display = 'none';
+    quizContainer.style.display = 'block'; // Show the quiz container
+    showQuestion();
+    startTimer(); // Start the initial timer for the first question
+    }
+  </script>
+</body>
+</html>
